@@ -50,14 +50,20 @@ RUN set -ex && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+# ========== 关键修改：所有COPY路径添加../，指向项目根目录 ==========
+# 原：COPY requirements.txt . → 改后：COPY ../requirements.txt .
+COPY ../requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY docker/manage.py .
-COPY trendradar/ ./trendradar/
+# 原：COPY docker/manage.py . → 改后：COPY manage.py .（因为manage.py和Dockerfile同目录）
+COPY manage.py .
+# 原：COPY trendradar/ ./trendradar/ → 改后：COPY ../trendradar/ ./trendradar/
+COPY ../trendradar/ ./trendradar/
 
-# 复制 entrypoint.sh 并强制转换为 LF 格式
-COPY docker/entrypoint.sh /entrypoint.sh.tmp
+# 原：COPY docker/entrypoint.sh /entrypoint.sh.tmp → 改后：COPY entrypoint.sh /entrypoint.sh.tmp（同目录）
+COPY entrypoint.sh /entrypoint.sh.tmp
+# ========== 关键修改结束 ==========
+
 RUN sed -i 's/\r$//' /entrypoint.sh.tmp && \
     mv /entrypoint.sh.tmp /entrypoint.sh && \
     chmod +x /entrypoint.sh && \
